@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Multiplication Quiz</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+    }
+    /* Container for both setup and quiz screens */
+    .container {
+      width: 600px;
+      margin: 40px auto;
+      border: 2px solid green;
+      padding: 20px;
+      background-color: #fff;
+      box-sizing: border-box;
+    }
+    /* Setup screen styles */
+    #setup {
+      text-align: center;
+    }
+    #setup select {
+      font-size: 1em;
+      padding: 5px;
+      margin: 10px;
+    }
+    #startQuizButton {
+      padding: 8px 16px;
+      font-size: 1em;
+      font-weight: bold;
+      border: none;
+      border-radius: 4px;
+      background-color: #007BFF;
+      color: #fff;
+      cursor: pointer;
+    }
+    /* Quiz screen (initially hidden) */
+    #quiz {
+      display: none;
+    }
+    /* Header: left side with question info; right side with timer and main page button */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .left-header {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .right-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .question-number {
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+    .next-question, .answer-button, .main-page-button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .next-question {
+      background-color: #9C27B0;
+      color: #fff;
+    }
+    .answer-button {
+      background-color: #007BFF;
+      color: #fff;
+    }
+    .main-page-button {
+      background-color: #FF8A65;
+      color: #fff;
+    }
+    /* Updated Fiery Timer styling with lighter, brighter colors */
+    #countdown {
+      width: 60px;
+      height: 60px;
+      border: 3px solid #FFA726;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5em;
+      color: #fff;
+      font-weight: bold;
+      background: radial-gradient(circle, #FFF176, #FFCC80, #FFB74D);
+      box-shadow: 0px 0px 15px rgba(255, 183, 77, 0.8);
+    }
+    /* Main question */
+    .question {
+      text-align: center;
+      font-size: 3em;
+      font-weight: bold;
+      margin-top: 40px;
+      margin-bottom: 60px;
+    }
+    /* Options container */
+    .options {
+      display: flex;
+      justify-content: center;
+      margin-top: 60px;
+    }
+    .option {
+      width: 100px;
+      height: 50px;
+      margin: 0 10px;
+      color: #000;
+      font-weight: bold;
+      font-size: 1.8em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    /* Predefined background color classes for options */
+    .green  { background-color: green; }
+    .yellow { background-color: yellow; }
+    .red    { background-color: red; }
+    .blue   { background-color: blue; }
+    /* Complete message */
+    .complete-message {
+      text-align: center;
+      font-size: 2em;
+      font-weight: bold;
+      color: #007BFF;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Setup Screen -->
+  <div id="setup">
+    <h2>Welcome to the Multiplication Quiz!</h2>
+    <p>
+      <label for="tableSelect">Choose multiplication table:</label>
+      <select id="tableSelect">
+        <option value="1">1 Times Table</option>
+        <option value="2">2 Times Table</option>
+        <option value="3" selected>3 Times Table</option>
+        <option value="4">4 Times Table</option>
+        <option value="5">5 Times Table</option>
+        <option value="6">6 Times Table</option>
+        <option value="7">7 Times Table</option>
+        <option value="8">8 Times Table</option>
+        <option value="9">9 Times Table</option>
+        <option value="10">10 Times Table</option>
+        <option value="random">Random</option>
+      </select>
+    </p>
+    <p>
+      <label for="timerSelect">Choose timer (seconds):</label>
+      <select id="timerSelect">
+        <option value="5">5 Seconds</option>
+        <option value="10" selected>10 Seconds</option>
+        <option value="20">20 Seconds</option>
+        <option value="30">30 Seconds</option>
+      </select>
+    </p>
+    <button id="startQuizButton">Start Quiz</button>
+  </div>
+
+  <!-- Quiz Screen -->
+  <div id="quiz">
+    <!-- Header with left: Question number, Next Question, Answer; right: Timer and Main Page -->
+    <div class="header">
+      <div class="left-header">
+        <div class="question-number">Question 1</div>
+        <button class="next-question">Next Question</button>
+        <button class="answer-button">Answer</button>
+      </div>
+      <div class="right-header">
+        <div id="countdown">10</div>
+        <button class="main-page-button" id="mainPageButton">Main Page</button>
+      </div>
+    </div>
+    <!-- Main question -->
+    <div class="question">X x Y =</div>
+    <!-- Options container -->
+    <div class="options"></div>
+    <!-- Quiz complete message -->
+    <div class="complete-message" style="display: none;">Quiz Complete!</div>
+  </div>
+</div>
+
+<script>
+  // Global variables for game settings
+  let chosenTable = 3;
+  let timerSeconds = 10;
+  let randomMode = false;  // Flag for random multiplication mode
+  
+  // Quiz state variables
+  let currentQuestionIndex = 1;
+  const maxQuestions = 30;
+  let unusedMultipliers = []; // For ensuring uniqueness in specific mode
+  
+  // Element references
+  const setupDiv = document.getElementById("setup");
+  const quizDiv = document.getElementById("quiz");
+  const startQuizButton = document.getElementById("startQuizButton");
+  const tableSelect = document.getElementById("tableSelect");
+  const timerSelect = document.getElementById("timerSelect");
+  
+  const questionElem = document.querySelector('.question');
+  const questionNumberElem = document.querySelector('.question-number');
+  const optionsContainer = document.querySelector('.options');
+  const countdownElem = document.getElementById('countdown');
+  const nextQuestionButton = document.querySelector('.next-question');
+  const answerButton = document.querySelector('.answer-button');
+  const completeMessageElem = document.querySelector('.complete-message');
+  const mainPageButton = document.getElementById("mainPageButton");
+  
+  let timerInterval;
+  
+  // Initialize unusedMultipliers (1-10) for specific mode
+  function initUnusedMultipliers() {
+    unusedMultipliers = [1,2,3,4,5,6,7,8,9,10];
+    for (let i = unusedMultipliers.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [unusedMultipliers[i], unusedMultipliers[j]] = [unusedMultipliers[j], unusedMultipliers[i]];
+    }
+  }
+  
+  // Generate options for specific mode (using chosenTable)
+  function generateOptionsSpecific(correctAnswer, multiplier, table) {
+    const optionsSet = new Set();
+    optionsSet.add(correctAnswer);
+    const possibleOffsets = [-3, -2, -1, 1, 2, 3];
+    while (optionsSet.size < 4) {
+      const offset = possibleOffsets[Math.floor(Math.random() * possibleOffsets.length)];
+      const candidate = table * (multiplier + offset);
+      if (candidate > 0) {
+        optionsSet.add(candidate);
+      }
+    }
+    const optionsArray = Array.from(optionsSet);
+    for (let i = optionsArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [optionsArray[i], optionsArray[j]] = [optionsArray[j], optionsArray[i]];
+    }
+    return optionsArray;
+  }
+  
+  // Generate options for random mode.
+  // The question is "a x b = ?" and options are generated by varying the second factor.
+  function generateOptionsRandom(correctAnswer, a, b) {
+    const optionsSet = new Set();
+    optionsSet.add(correctAnswer);
+    const possibleOffsets = [-3, -2, -1, 1, 2, 3];
+    while (optionsSet.size < 4) {
+      const offset = possibleOffsets[Math.floor(Math.random() * possibleOffsets.length)];
+      const candidate = a * (b + offset);
+      if (candidate > 0) {
+        optionsSet.add(candidate);
+      }
+    }
+    const optionsArray = Array.from(optionsSet);
+    for (let i = optionsArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [optionsArray[i], optionsArray[j]] = [optionsArray[j], optionsArray[i]];
+    }
+    return optionsArray;
+  }
+  
+  // Generates a new question.
+  function generateQuestion() {
+    if (currentQuestionIndex > maxQuestions) {
+      nextQuestionButton.disabled = true;
+      completeMessageElem.style.display = "block";
+      return;
+    }
+    
+    let questionText = "";
+    let correctAnswer;
+    let options;
+    
+    if (!randomMode) {
+      // Specific mode: Use chosenTable.
+      let multiplier;
+      if (currentQuestionIndex <= 10) {
+        multiplier = unusedMultipliers.pop();
+      } else {
+        multiplier = Math.floor(Math.random() * 10) + 1;
+      }
+      correctAnswer = chosenTable * multiplier;
+      questionText = `${chosenTable} x ${multiplier} =`;
+      options = generateOptionsSpecific(correctAnswer, multiplier, chosenTable);
+    } else {
+      // Random mode: Both factors are random.
+      const a = Math.floor(Math.random() * 10) + 1;
+      const b = Math.floor(Math.random() * 10) + 1;
+      correctAnswer = a * b;
+      questionText = `${a} x ${b} =`;
+      options = generateOptionsRandom(correctAnswer, a, b);
+    }
+    
+    questionNumberElem.textContent = `Question ${currentQuestionIndex}`;
+    questionElem.textContent = questionText;
+    optionsContainer.innerHTML = "";
+    const colorClasses = ["green", "yellow", "red", "blue"];
+    for (let i = 0; i < options.length; i++) {
+      const optionDiv = document.createElement("div");
+      optionDiv.classList.add("option", colorClasses[i % colorClasses.length]);
+      if (options[i] === correctAnswer) {
+        optionDiv.setAttribute("data-correct", "true");
+      }
+      optionDiv.textContent = options[i];
+      optionsContainer.appendChild(optionDiv);
+    }
+  }
+  
+  // Starts the countdown timer.
+  function startTimer() {
+    clearInterval(timerInterval);
+    let timeLeft = timerSeconds;
+    countdownElem.textContent = timeLeft;
+    timerInterval = setInterval(() => {
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        countdownElem.textContent = "0";
+      } else {
+        countdownElem.textContent = timeLeft;
+      }
+      timeLeft--;
+    }, 1000);
+  }
+  
+  // Start Quiz button event listener
+  startQuizButton.addEventListener('click', () => {
+    const tableValue = tableSelect.value;
+    if (tableValue === "random") {
+      randomMode = true;
+    } else {
+      randomMode = false;
+      chosenTable = parseInt(tableValue);
+      initUnusedMultipliers();
+    }
+    timerSeconds = parseInt(timerSelect.value);
+    currentQuestionIndex = 1;
+    setupDiv.style.display = "none";
+    quizDiv.style.display = "block";
+    generateQuestion();
+    startTimer();
+  });
+  
+  // Next Question button event listener
+  nextQuestionButton.addEventListener('click', () => {
+    currentQuestionIndex++;
+    if (currentQuestionIndex <= maxQuestions) {
+      generateQuestion();
+      document.querySelectorAll('.option').forEach(div => div.style.display = "flex");
+      startTimer();
+    } else {
+      nextQuestionButton.disabled = true;
+      completeMessageElem.style.display = "block";
+    }
+  });
+  
+  // Answer button event listener
+  answerButton.addEventListener('click', () => {
+    document.querySelectorAll('.option').forEach(option => {
+      if (!option.hasAttribute('data-correct') || option.getAttribute('data-correct') !== "true") {
+        option.style.display = 'none';
+      }
+    });
+  });
+  
+  // Main Page button event listener
+  mainPageButton.addEventListener('click', () => {
+    if (confirm("Do you want to go to the main page?")) {
+      setupDiv.style.display = "block";
+      quizDiv.style.display = "none";
+      clearInterval(timerInterval);
+    }
+  });
+</script>
+
+</body>
+</html>
